@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <h1>Welcome to my website</h1>
+    <form>
+        <input type="text" placeholder="Enter Product Title" id="title">
+        <input type="number" placeholder="Enter Product Price" id="price" autocomplete="off">
+        <input type="text" placeholder="Enter Product Description" id="description" autocomplete="off">
+        <input type="url" placeholder="Enter Product Image" id="image">
+        <br><br>
+        <button id="add">Add Product</button>
+        <button id="update">Update Product</button>
+    </form>
+    <div class="card">
+
+    </div>
+
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        import {
+            getFirestore,
+            addDoc,
+            collection,
+            getDocs,
+            deleteDoc,
+            doc,
+            getDoc,
+            updateDoc
+
+        } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzhzeLE3fLWkFTnq3eanE1QqyeXN8s_EA",
+            authDomain: "data-3f9e7.firebaseapp.com",
+            projectId: "data-3f9e7",
+            storageBucket: "data-3f9e7.firebasestorage.app",
+            messagingSenderId: "468090412313",
+            appId: "1:468090412313:web:e938381eb4c98a5aa5f988"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // add data to fire store
+
+        async function addData(e) {
+            e.preventDefault();
+            const title = document.querySelector("#title").value;
+            const price = document.querySelector("#price").value;
+            const desc = document.querySelector("#description").value;
+            const img = document.querySelector("#image").value;
+            try {
+                const docRef = await addDoc(collection(db, "products"), {
+                    title: title,
+                    price: price,
+                    description: desc,
+                    image: img
+                })
+                alert("Product Added");
+                getData();
+
+            }
+            catch (error) {
+                console.log(error)
+            }
+        }
+        const addBtn = document.querySelector("#add");
+        addBtn.addEventListener("click", addData);
+
+        //Get Data From FireStore
+
+        async function getData() {
+            try {
+                const getDataQuery = await getDocs(collection(db, "products"));
+                let htmlTag = "";
+                getDataQuery.forEach(doc => {
+                    // console.log(doc.data());
+                    const productData = doc.data();
+                    htmlTag += `
+        <img src="${productData.image}" alt="" height="150" width="150">
+        <h2>${productData.title}</h2>
+        <p>${productData.description} $ ${productData.price}</p>
+        <button onclick ="deleteData('${doc.id}')">delete</button>
+        <button onclick ="updateData('${doc.id}')">update</button>
+        `
+                });
+                const card = document.querySelector(".card");
+                card.innerHTML = htmlTag;
+
+
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+        getData()
+
+        // Delete Data
+
+
+
+        window.deleteData = async function (id) {
+            try {
+                await deleteDoc(doc(db, "products", id));
+                alert("product deleted");
+                getData();
+            }
+            catch (err) {
+                console.log(err);
+            }
+
+        }
+
+
+        // Update Data
+
+
+        window.updateData = async function (id) {
+            try {
+                const x = await getDoc(doc(db, "products", id));
+                const currentData = x.data();
+
+                document.querySelector("#title").value = currentData.title;
+                document.querySelector("#price").value = currentData.price;
+                document.querySelector("#description").value = currentData.description;
+                document.querySelector("#image").value = currentData.image;
+                const updateBtn = document.querySelector("#update");
+                updateBtn.style.display = "block";
+                updateBtn.addEventListener("click", async function () {
+                    const newTitle = document.querySelector("#title").value;
+                    const newPrice = document.querySelector("#price").value;
+                    const newDesc = document.querySelector("#description").value;
+                    const newImg = document.querySelector("#image").value;
+                    if(newTitle!=null && newPrice!=null && newDesc!=null && newImg!=null){
+                        await updateDoc(doc(db, "products",id), {
+                    title: newTitle,
+                    price: newPrice,
+                    description: newDesc,
+                    image: newImg
+                })
+                alert("data updated");
+                getData();
+                updateBtn.style.display = "none";
+                    }
+                })
+            }
+            catch (err) {
+                console.log(err);
+            }
+
+        }
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
